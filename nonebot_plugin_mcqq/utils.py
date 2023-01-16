@@ -2,9 +2,38 @@ from nonebot import get_driver, logger
 from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent
 from nonebot_plugin_guild_patch import GuildMessageEvent
 
+import json
 from typing import Union
+import os
 
-
+config_file_path="data/mcqq/"
+config_file="data/mcqq/config.json"
+# 创建配置文件
+def create_config_file():
+    default_config={'mcqq_ws_ip':'127.0.0.1','mcqq_ws_port':8765,'mcqq_send_group_name':True,'mcqq_display_server_name':True,'mcqq_servers_list':[]}
+    if os.path.exists("data/mcqq")==False:
+        logger.debug("数据目录不存在，创建目录")
+        os.makedirs("data/mcqq")
+    if os.path.exists(config_file)==False:
+        with open(config_file,mode='w') as f:
+            logger.debug("创建配置文件config.json")
+            f.write(json.dumps(default_config,indent=4))
+            f.close()
+            
+def get_config():
+    create_config_file()
+    with open(config_file,mode='r') as f:
+            config=json.load(f)
+            f.close()
+            return config
+def set_config(json_config: str):
+    try:
+        with open(config_file,mode='w') as f:
+            print("更新配置文件config.json")
+            f.write(json_config)
+            f.close()
+    except:
+        logger.error("更新配置文件失败")
 async def msg_rule(event: Union[GroupMessageEvent, GuildMessageEvent]) -> bool:
     """Rule 消息规则"""
     for per_server in get_mc_qq_servers_list():
@@ -163,7 +192,7 @@ async def msg_process(bot: Bot, event: Union[GroupMessageEvent, GuildMessageEven
 def get_mc_qq_ws_ip() -> str:
     """获取 WebSocket IP"""
     try:
-        return str(get_driver().config.mc_qq_ws_ip)
+        return str(get_config()["mcqq_ws_ip"])
     except AttributeError:
         return "localhost"
 
@@ -171,7 +200,7 @@ def get_mc_qq_ws_ip() -> str:
 def get_mc_qq_ws_port() -> int:
     """获取 WebSocket 端口"""
     try:
-        return int(get_driver().config.mc_qq_ws_port)
+        return int(get_config()["mcqq_ws_port"])
     except AttributeError:
         return 8765
 
@@ -179,7 +208,7 @@ def get_mc_qq_ws_port() -> int:
 def get_mc_qq_send_group_name() -> bool:
     """获取 是否发送群聊名称"""
     try:
-        return bool(get_driver().config.mc_qq_send_group_name)
+        return bool(get_config()["mcqq_send_group_name"])
     except AttributeError:
         return False
 
@@ -187,7 +216,7 @@ def get_mc_qq_send_group_name() -> bool:
 def get_mc_qq_display_server_name() -> bool:
     """获取 是否显示服务器名称"""
     try:
-        return bool(get_driver().config.mc_qq_display_server_name)
+        return bool(get_config()["mcqq_display_server_name"])
     except AttributeError:
         return False
 
@@ -195,6 +224,6 @@ def get_mc_qq_display_server_name() -> bool:
 def get_mc_qq_servers_list() -> list:
     """获取 服务器列表"""
     try:
-        return list(get_driver().config.mc_qq_servers_list)
+        return list(get_config()["mcqq_servers_list"])
     except AttributeError:
         return []
